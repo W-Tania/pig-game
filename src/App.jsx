@@ -12,18 +12,26 @@ function reducer(state, action) {
   switch (action.type) {
     case "reset":
       return initialState;
-    case "rollDice":
+
+    case "rollDice": {
+      // Wrap the case in curly braces to create a block scope
+      const newDice = Math.trunc(Math.random() * 6) + 1; // store the new dice value in a variable before updating state.
       return {
         ...state,
-        dice: Math.trunc(Math.random() * 6) + 1,
-        currentScore: state.currentScore + state.dice,
+        dice: newDice,
+        currentScore: state.currentScore + newDice,
       };
+    }
+
     case "hold":
       return {
         ...state,
         scorePlayer1: state.scorePlayer1 + state.currentScore,
         currentScore: 0,
       };
+
+    default:
+      return state;
   }
 }
 
@@ -44,8 +52,6 @@ function App() {
 
   const rollDice = function () {
     dispatch({ type: "rollDice" });
-    console.log(dice);
-    console.log("current score is" + currentScore);
   };
 
   const hold = function () {
