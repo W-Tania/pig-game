@@ -3,8 +3,9 @@ import { useReducer } from "react";
 const initialState = {
   scorePlayer1: 0,
   scorePlayer2: 0,
-  currentPlayer: 0,
-  currentScore: 0,
+  isActivePlayer1: true,
+  currentScorePlayer1: 0,
+  currentScorePlayer2: 0,
   dice: 0,
 };
 
@@ -15,20 +16,49 @@ function reducer(state, action) {
 
     case "rollDice": {
       // Wrap the case in curly braces to create a block scope
-      const newDice = Math.trunc(Math.random() * 6) + 1; // store the new dice value in a variable before updating state.
-      return {
-        ...state,
-        dice: newDice,
-        currentScore: state.currentScore + newDice,
-      };
+
+      // store the new dice value in a variable before updating state.
+      const newDice = Math.trunc(Math.random() * 6) + 1;
+
+      // check active player
+      const currentScore = state.isActivePlayer1
+        ? "currentScorePlayer1"
+        : "currentScorePlayer2";
+
+      if (newDice !== 1) {
+        // if rolled not 1,  and add dice to currentScorePlayerX
+        return {
+          ...state,
+          dice: newDice,
+          [currentScore]: state[currentScore] + newDice,
+        };
+      } else {
+        // Switch player when rolled 1
+        return {
+          ...state,
+          dice: newDice,
+          isActivePlayer1: !state.isActivePlayer1,
+          [currentScore]: 0,
+        };
+      }
     }
 
-    case "hold":
+    case "hold": {
+      const PlayerScore = state.isActivePlayer1
+        ? "scorePlayer1"
+        : "scorePlayer2";
+
+      const currentScore = state.isActivePlayer1
+        ? "currentScorePlayer1"
+        : "currentScorePlayer2";
+
       return {
         ...state,
-        scorePlayer1: state.scorePlayer1 + state.currentScore,
-        currentScore: 0,
+        [PlayerScore]: state[PlayerScore] + state[currentScore],
+        [currentScore]: 0,
+        isActivePlayer1: !state.isActivePlayer1,
       };
+    }
 
     default:
       return state;
@@ -36,13 +66,15 @@ function reducer(state, action) {
 }
 
 function App() {
-  // const [dice, setDice] = useState(0);
-  // function RollDice() {
-  //   setDice(Math.trunc(Math.random() * 6) + 1);
-  // }
-
   const [
-    { scorePlayer1, scorePlayer2, currentPlayer, currentScore, dice },
+    {
+      scorePlayer1,
+      scorePlayer2,
+      isActivePlayer1,
+      currentScorePlayer1,
+      currentScorePlayer2,
+      dice,
+    },
     dispatch,
   ] = useReducer(reducer, initialState);
 
@@ -60,20 +92,20 @@ function App() {
 
   return (
     <main>
-      <section className="player">
+      <section className={`player ${isActivePlayer1 ? "player--active" : ""}`}>
         <h2 className="name">Player 1</h2>
         <p className="score">{scorePlayer1}</p>
         <div className="current">
           <p className="current-label">Current</p>
-          <p className="current-score">{currentScore}</p>
+          <p className="current-score">{currentScorePlayer1}</p>
         </div>
       </section>
-      <section className="player">
+      <section className={`player ${!isActivePlayer1 ? "player--active" : ""}`}>
         <h2 className="name">Player 2</h2>
-        <p className="score">34</p>
+        <p className="score">{scorePlayer2}</p>
         <div className="current">
           <p className="current-label">Current</p>
-          <p className="current-score">0</p>
+          <p className="current-score">{currentScorePlayer2}</p>
         </div>
       </section>
 
