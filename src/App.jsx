@@ -7,6 +7,8 @@ const initialState = {
   currentScorePlayer1: 0,
   currentScorePlayer2: 0,
   dice: 0,
+  winner: null,
+  isPlaying: true,
 };
 
 function reducer(state, action) {
@@ -44,7 +46,7 @@ function reducer(state, action) {
     }
 
     case "hold": {
-      const PlayerScore = state.isActivePlayer1
+      const playerScore = state.isActivePlayer1
         ? "scorePlayer1"
         : "scorePlayer2";
 
@@ -52,9 +54,24 @@ function reducer(state, action) {
         ? "currentScorePlayer1"
         : "currentScorePlayer2";
 
+      //Check if active player wins
+      const updatedScore = state[playerScore] + state[currentScore];
+
+      if (updatedScore >= 50) {
+        return {
+          ...state,
+          [playerScore]: updatedScore,
+          [currentScore]: 0,
+          winner: state.isActivePlayer1 ? "Player1" : "Player2",
+          dice: 0,
+          isPlaying: false,
+        };
+      }
+
+      //no winner, continue game and switch player
       return {
         ...state,
-        [PlayerScore]: state[PlayerScore] + state[currentScore],
+        [playerScore]: state[playerScore] + state[currentScore],
         [currentScore]: 0,
         isActivePlayer1: !state.isActivePlayer1,
       };
@@ -74,6 +91,8 @@ function App() {
       currentScorePlayer1,
       currentScorePlayer2,
       dice,
+      winner,
+      isPlaying,
     },
     dispatch,
   ] = useReducer(reducer, initialState);
@@ -92,7 +111,11 @@ function App() {
 
   return (
     <main>
-      <section className={`player ${isActivePlayer1 ? "player--active" : ""}`}>
+      <section
+        className={`player ${isActivePlayer1 ? "player--active" : ""} ${
+          winner === "Player1" ? "player--winner" : ""
+        }`}
+      >
         <h2 className="name">Player 1</h2>
         <p className="score">{scorePlayer1}</p>
         <div className="current">
@@ -100,7 +123,11 @@ function App() {
           <p className="current-score">{currentScorePlayer1}</p>
         </div>
       </section>
-      <section className={`player ${!isActivePlayer1 ? "player--active" : ""}`}>
+      <section
+        className={`player ${!isActivePlayer1 ? "player--active" : ""} ${
+          winner === "Player2" ? "player--winner" : ""
+        }`}
+      >
         <h2 className="name">Player 2</h2>
         <p className="score">{scorePlayer2}</p>
         <div className="current">
@@ -120,7 +147,10 @@ function App() {
         <button className="btn btn--new" onClick={reset}>
           🔄 New game
         </button>
-        <button className="btn btn--roll" onClick={rollDice}>
+        <button
+          className={`btn btn--roll ${isPlaying ? "" : "hidden"}`}
+          onClick={rollDice}
+        >
           🎲 Roll dice
         </button>
         {dice ? (
