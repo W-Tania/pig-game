@@ -27,22 +27,18 @@ function reducer(state, action) {
         ? "currentScorePlayer1"
         : "currentScorePlayer2";
 
-      if (newDice !== 1) {
-        // if rolled not 1,  and add dice to currentScorePlayerX
-        return {
-          ...state,
-          dice: newDice,
-          [currentScore]: state[currentScore] + newDice,
-        };
-      } else {
-        // Switch player when rolled 1
-        return {
-          ...state,
-          dice: newDice,
-          isActivePlayer1: !state.isActivePlayer1,
-          [currentScore]: 0,
-        };
-      }
+      return newDice !== 1
+        ? {
+            ...state,
+            dice: newDice,
+            [currentScore]: state[currentScore] + newDice,
+          }
+        : {
+            ...state,
+            dice: newDice,
+            isActivePlayer1: !state.isActivePlayer1,
+            [currentScore]: 0,
+          };
     }
 
     case "hold": {
@@ -54,26 +50,22 @@ function reducer(state, action) {
         ? "currentScorePlayer1"
         : "currentScorePlayer2";
 
-      //Check if active player wins
       const updatedScore = state[playerScore] + state[currentScore];
 
-      if (updatedScore >= 50) {
-        return {
-          ...state,
-          [playerScore]: updatedScore,
-          [currentScore]: 0,
-          winner: state.isActivePlayer1 ? "Player1" : "Player2",
-          dice: 0,
-          isPlaying: false,
-        };
-      }
-
-      //no winner, continue game and switch player
       return {
         ...state,
-        [playerScore]: state[playerScore] + state[currentScore],
+        [playerScore]: updatedScore,
         [currentScore]: 0,
-        isActivePlayer1: !state.isActivePlayer1,
+        isActivePlayer1:
+          updatedScore >= 50 ? state.isActivePlayer1 : !state.isActivePlayer1,
+        winner:
+          updatedScore >= 50
+            ? state.isActivePlayer1
+              ? "Player1"
+              : "Player2"
+            : state.winner,
+        dice: updatedScore >= 50 ? 0 : state.dice,
+        isPlaying: updatedScore >= 50 ? false : state.isPlaying,
       };
     }
 
@@ -137,13 +129,12 @@ function App() {
       </section>
 
       <>
-        {dice ? (
-          <img
-            src={`/images/dice-${dice}.png`}
-            alt="Playing dice"
-            className="dice"
-          />
-        ) : null}
+        <img
+          src={`/images/dice-${dice}.png`}
+          alt="Playing dice"
+          className={`dice ${dice ? "" : "hidden"}`}
+        />
+
         <button className="btn btn--new" onClick={reset}>
           🔄 New game
         </button>
@@ -153,11 +144,12 @@ function App() {
         >
           🎲 Roll dice
         </button>
-        {dice ? (
-          <button className="btn btn--hold" onClick={hold}>
-            📥 Hold
-          </button>
-        ) : null}
+        <button
+          className={`btn btn--hold ${dice ? "" : "hidden"}`}
+          onClick={hold}
+        >
+          📥 Hold
+        </button>
       </>
     </main>
   );
